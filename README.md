@@ -100,10 +100,6 @@ This group includes Gradient Boosted Regression Trees, Random Forest, and Extra 
 This group includes feed-forward neural networks with different numbers of layers and hidden nodes, as well as group-ensemble specifications based on forward-rate and macroeconomic information.
 
 
-## **Results**
-
-
-
 ## **References**
 
 1. Bianchi, D., Büchner, M., & Tamoni, A. (2021). *Bond Risk Premia with Machine Learning*. Author’s Accepted Manuscript, University of Warwick Research Archive. [WRAP version](https://wrap.warwick.ac.uk/151797/1/WRAP-bond-risk-premiums-machine-learning-B%C3%BCchner-2021.pdf).
