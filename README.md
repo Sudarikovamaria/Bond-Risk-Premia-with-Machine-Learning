@@ -2,13 +2,11 @@
 
 **Contributors:** [Artemiy Maselskas](https://github.com/artemii2006) · [Maria Sudarikova](https://github.com/Sudarikovamaria) · [Anastasiya Polishchuk](https://github.com/AnastasiyaPolishchuk)
 
----
 
 This project compares statistical and machine learning models for forecasting excess returns on Treasury bonds. Following Bianchi, Büchner, and Tamoni, the analysis examines whether different model classes extract useful predictive information from the Treasury yield curve and from a broad set of macroeconomic variables.
 
 The paper motivating this project states that “machine learning methods, in particular extreme trees and neural networks (NNs), provide strong statistical evidence in favor of bond return predictability.” The project focuses on a systematic comparison of model performance across bond maturities and information sets, including yield-only and macro-augmented specifications.
 
----
 
 ## **Research Problem**
 
@@ -16,7 +14,6 @@ Bond risk premia vary over time and may depend on nonlinear relationships betwee
 
 The main research problem is to determine whether machine learning models provide more accurate out-of-sample forecasts of bond excess returns than traditional approaches. A related question is whether macroeconomic variables improve forecasting performance relative to models based only on the yield curve.
 
----
 
 ## **Data**
 
@@ -46,7 +43,6 @@ The processed datasets include:
 - `yield_only_data.csv` — yield-based predictors combined with the target variables;
 - `macro_data.csv` — yield-based and macroeconomic predictors combined with the target variables.
 
----
 
 ## **Methodology**
 
@@ -76,7 +72,6 @@ Model performance is evaluated using:
 - benchmark mean squared error;
 - out-of-sample $R^2$ relative to the historical-mean benchmark.
 
----
 
 ## **Models Specifications**
 
@@ -92,17 +87,15 @@ This group includes Gradient Boosted Regression Trees, Random Forest, and Extra 
 
 This group includes feed-forward neural networks with different numbers of layers and hidden nodes, as well as group-ensemble specifications based on forward-rate and macroeconomic information.
 
----
 
 ## **Results**
 
 
----
 
 ## **References**
 
 1. Bianchi, D., Büchner, M., & Tamoni, A. (2021). *Bond Risk Premia with Machine Learning*. Author’s Accepted Manuscript, University of Warwick Research Archive. [WRAP version](https://wrap.warwick.ac.uk/151797/1/WRAP-bond-risk-premiums-machine-learning-B%C3%BCchner-2021.pdf).
 
-2. Liu, Y., & Wu, J. C. (2020). *Reconstructing the Yield Curve*. NBER Working Paper No. 27266. [NBER version](https://www.nber.org/papers/w27266).
+2. Liu, Y., & Wu, J. C. (2021). *Liu–Wu Yield Data* [Data set]. Monthly and daily yield curve data. [Official data page](https://sites.google.com/view/jingcynthiawu/yield-data).
 
-3. McCracken, M. W., & Ng, S. (2016). FRED-MD: A Monthly Database for Macroeconomic Research. *Journal of Business & Economic Statistics*, 34(4), 574–589. [DOI](https://doi.org/10.1080/07350015.2015.1086655).
+3. Federal Reserve Bank of St. Louis. (2018). *FRED-MD: December 2018 Vintage* [Data set]. [Official FRED-MD data page](https://www.stlouisfed.org/research/economists/mccracken/fred-databases).
