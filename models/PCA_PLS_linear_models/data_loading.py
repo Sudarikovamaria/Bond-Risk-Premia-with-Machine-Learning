@@ -1,23 +1,27 @@
-"""Согласованная загрузка данных для обеих таблиц статьи.
+"""Загрузка данных из тех же файлов, которые используют остальные модели.
 
-Смысл этого модуля — чтобы все семейства моделей считались на одном и том же
-входе. Если у деревьев панель из 124 рядов с 1971 года, а у линейных моделей из
-126 с 1979-го, разница в R² между семействами будет включать разницу в данных.
+Читается `yield_only_data.csv` и `macro_data.csv` — финальные матрицы, а не
+промежуточный `macro_panel.csv`. Смысл в том, чтобы все три семейства моделей
+считались на одинаковом входе: иначе разница в R² между линейными моделями,
+деревьями и сетями будет частично отражать разницу в данных, а не в методах.
 
-Сценарий этой ветки: НЕПОЛНЫЕ РЯДЫ ОТБРАСЫВАЮТСЯ, ВСЕ СТРОКИ СОХРАНЯЮТСЯ.
+Оба файла датированы моментом РЕАЛИЗАЦИИ доходности, поэтому здесь индекс
+сдвигается на 12 месяцев назад — к дате прогноза. Так строка с датой t содержит
+предикторы, известные в t, и доходность, которая реализуется в t+12.
 
-Три ряда FRED-MD начинаются позже начала выборки: ACOGNO с 1992-03, UMCSENTx с
-1978-02, TWEXMMTH с 1973-02. Здесь они убираются как колонки, и история остаётся
-полной с 1971-08. Цена — 3 предиктора из 127, то есть 2.4%.
+Доходности в ПРОЦЕНТАХ, как в исходных файлах. Это соглашение важно соблюдать во
+всех семействах моделей: elastic net принципиально зависит от единиц измерения
+цели. При умножении цели на 100 квадратичная ошибка и L2-штраф растут в 10 000
+раз, а L1-штраф только в 100, поэтому одним множителем alpha их не согласовать.
+На наших данных переход с процентов на доли сдвигает R² elastic net на 0.9-3.8
+п.п. Ridge и lasso инвариантны.
 
-Альтернатива (ветка macro-drop-rows) убирает строки вместо колонок. Тогда выборка
-начинается с 1978-02, и на первом прогнозе в 1989-01 обучающая история сжимается
-с 209 месяцев до 131, то есть на 37%. В независимых годовых наблюдениях это 17
-против 11, а расширяющееся окно и без того голодает на первых прогнозах.
-
-Рваный край в конце панели (12 рядов без значений за 2018-11, один за 2018-10 —
-обычные лаги публикации) значения не имеет: последняя дата прогноза — 2017-12,
-потому что доходность с неё реализуется в 2018-12.
+Замечание о длине истории. `macro_data.csv` начинается с 1979-02 (по дате
+реализации), потому что при его сборке строки с пропусками были отброшены. На
+первом прогнозе в январе 1989 обучающей истории поэтому 131 месяц вместо 209.
+Это не ошибка: заглядывания вперёд нет, просто меньше данных. На тестовую выборку
+из 348 прогнозов это не влияет. Альтернатива — отбрасывать неполные ряды как
+колонки, а не строки, тогда история сохраняется с 1971-08; см. историю PR #1 и #2.
 """
 
 from pathlib import Path
@@ -28,42 +32,33 @@ ROOT = Path(__file__).resolve().parents[2]
 PROCESSED_DIR = ROOT / "data_processed"
 
 MATURITIES = [2, 3, 4, 5, 7, 10]
-LAST_ORIGIN = pd.Period("2017-12", freq="M")
-INCOMPLETE_SERIES = ["ACOGNO", "UMCSENTx", "TWEXMMTH"]
+HORIZON = 12
+TARGETS = [f"xr_{n}y" for n in MATURITIES]
 
 
 def _read(name):
     frame = pd.read_csv(PROCESSED_DIR / name, index_col="date")
-    frame.index = pd.PeriodIndex(frame.index, freq="M")
+    frame.index = pd.PeriodIndex(frame.index, freq="M") - HORIZON
     return frame.sort_index()
 
 
 def load():
-    """Возвращает (forwards, macro, excess) на общем индексе дат прогноза.
+    """Возвращает (forwards, macro, excess) на общем индексе дат прогноза."""
+    yield_only = _read("yield_only_data.csv")
+    macro_full = _read("macro_data.csv")
 
-    Доходности в ПРОЦЕНТАХ, как в исходных файлах. Это соглашение важно соблюдать
-    во всех семействах моделей: elastic net принципиально зависит от единиц
-    измерения цели. В его функции потерь при умножении цели на 100 квадратичная
-    ошибка и L2-штраф растут в 10 000 раз, а L1-штраф только в 100, поэтому одним
-    множителем alpha их не согласовать. На наших данных переход с процентов на
-    доли сдвигает R² elastic net на 0.9-3.8 п.п. Ridge и lasso инвариантны.
+    forwards = yield_only.drop(columns=TARGETS)
+    excess = yield_only[TARGETS]
+    macro = macro_full.drop(columns=TARGETS + list(forwards.columns))
 
-    Строка датирована моментом прогноза t, а доходность в excess реализуется в t+12.
-    """
-    forwards = _read("forward_rates.csv")
-    excess = _read("excess_returns.csv")[[f"xr_{n}y" for n in MATURITIES]]
-    macro = _read("macro_panel.csv")
-
-    macro = macro.drop(columns=[c for c in INCOMPLETE_SERIES if c in macro.columns])
-
-    common = forwards.index.intersection(macro.index).intersection(excess.index)
-    common = common[common <= LAST_ORIGIN]
-    return forwards.loc[common], macro.loc[common], excess.loc[common]
+    common = forwards.index.intersection(macro.index)
+    return forwards, macro.loc[common], excess
 
 
 if __name__ == "__main__":
     forwards, macro, excess = load()
-    remaining = macro.isna().sum().sum()
     print(f"forwards: {forwards.shape}  macro: {macro.shape}  excess: {excess.shape}")
-    print(f"окно: {forwards.index[0]} .. {forwards.index[-1]}  ({len(forwards)} дат прогноза)")
-    print(f"пропусков в макропанели: {remaining}")
+    print(f"форварды и цели: {forwards.index[0]} .. {forwards.index[-1]}")
+    print(f"макро:           {macro.index[0]} .. {macro.index[-1]}")
+    print(f"пропусков: forwards {forwards.isna().sum().sum()}, "
+          f"macro {macro.isna().sum().sum()}, excess {excess.isna().sum().sum()}")
