@@ -43,6 +43,8 @@ The processed datasets include:
 - `yield_only_data.csv` — yield-based predictors combined with the target variables;
 - `macro_data.csv` — yield-based and macroeconomic predictors combined with the target variables.
 
+Excess returns are expressed in percent throughout. This convention has to be shared across model families rather than treated as a formatting detail: Elastic Net is not invariant to the scale of the target, because rescaling the target changes its quadratic loss and its ridge penalty quadratically while changing its lasso penalty only linearly, and no single penalty parameter reconciles the two. On this sample, switching between percent and decimal units moves the Elastic Net out-of-sample $R^2$ by up to 3.8 percentage points. Ridge and Lasso are invariant.
+
 
 ## **Methodology**
 
@@ -77,7 +79,17 @@ Model performance is evaluated using:
 
 ### **Linear and Factor-Based Models**
 
-This group includes principal component analysis, partial least squares, and penalized linear regressions. The penalized regressions include Ridge, Lasso, and Elastic Net specifications based on either the Cochrane–Piazzesi factor or forward rates.
+This group covers Panels A and B of both tables in the paper and is implemented in `models/PCA_PLS_linear_models/`.
+
+**Yield-only specifications (Table 1).** Principal component regressions on the first three, five, and ten components of the forward-rate cross-section; the same regressions augmented with the squared components; partial least squares on three and five components; and Ridge, Lasso, and Elastic Net on the ten forward rates directly. With ten components the principal component regression is, up to a rotation of the basis, the original Cochrane–Piazzesi specification.
+
+**Macro-augmented specifications (Table 2).** A regression on the first eight principal components of the macroeconomic panel together with the Cochrane–Piazzesi factor; the subset specification of Ludvigson and Ng (2009), $F_t = (F_{1t}, F_{1t}^3, F_{3t}, F_{4t}, F_{8t})$, with the same factor; partial least squares on eight components; and the three penalized regressions in two variants — one using the Cochrane–Piazzesi factor as a single additional regressor, the other using all ten forward rates.
+
+**Estimation details.** The Cochrane–Piazzesi factor is the fitted value of a regression of the average excess return on all forward rates, and the macroeconomic principal components are extracted by principal component analysis; both are re-estimated inside every expanding window, so neither introduces information unavailable at the forecast date. Predictors are standardised using training-sample moments only. Penalties for Ridge are selected from a fixed logarithmic grid on the validation sample; for Lasso and Elastic Net the penalty is selected along the regularisation path, which starts at the penalty that sets every coefficient to zero and descends by three orders of magnitude. An absolute grid is inappropriate here because the relevant scale depends on the dispersion of the target, and the ten-year excess return is roughly six times as volatile as the two-year one.
+
+**Forecast timing.** The first forecast is made in January 1989 and is realised in January 1990, which yields 348 out-of-sample observations. The statement in the paper that the recursive forecast starts in January 1990 refers to the realisation date: Section 4.1 specifies that the first forecast error compares the excess return over February 1989 to January 1990 with the forecast made in January 1989.
+
+A twelve-month holding-period return dated $t$ is only observed at $t+12$, so training on targets dated up to $t-1$ uses information unavailable at $t$. The `GAP` constant controls this: `GAP = 1` reproduces the design of the paper, while `GAP = 12` removes the look-ahead. Both variants are reported, because the difference is large and the published corrigendum to the paper revises the original results for exactly this reason.
 
 ### **Tree-Based Models**
 
@@ -88,14 +100,12 @@ This group includes Gradient Boosted Regression Trees, Random Forest, and Extra 
 This group includes feed-forward neural networks with different numbers of layers and hidden nodes, as well as group-ensemble specifications based on forward-rate and macroeconomic information.
 
 
-## **Results**
-
-
-
 ## **References**
 
 1. Bianchi, D., Büchner, M., & Tamoni, A. (2021). *Bond Risk Premia with Machine Learning*. Author’s Accepted Manuscript, University of Warwick Research Archive. [WRAP version](https://wrap.warwick.ac.uk/151797/1/WRAP-bond-risk-premiums-machine-learning-B%C3%BCchner-2021.pdf).
 
-2. Liu, Y., & Wu, J. C. (2021). *Liu–Wu Yield Data* [Data set]. Monthly and daily yield curve data. [Official data page](https://sites.google.com/view/jingcynthiawu/yield-data).
+2. Bianchi, D., Büchner, M., & Tamoni, A. (2021). *Corrigendum: Bond Risk Premiums with Machine Learning*. The Review of Financial Studies, 34(2), 1090–1103. The authors revise the published results after correcting for the use of information unavailable at the forecast date, and report lower out-of-sample $R^2$. The freely available manuscripts predate this correction, so their tables are the pre-correction ones. [DOI](https://doi.org/10.1093/rfs/hhaa098).
 
-3. Federal Reserve Bank of St. Louis. (2018). *FRED-MD: December 2018 Vintage* [Data set]. [Official FRED-MD data page](https://www.stlouisfed.org/research/economists/mccracken/fred-databases).
+3. Liu, Y., & Wu, J. C. (2021). *Liu–Wu Yield Data* [Data set]. Monthly and daily yield curve data. [Official data page](https://sites.google.com/view/jingcynthiawu/yield-data).
+
+4. Federal Reserve Bank of St. Louis. (2018). *FRED-MD: December 2018 Vintage* [Data set]. [Official FRED-MD data page](https://www.stlouisfed.org/research/economists/mccracken/fred-databases).
