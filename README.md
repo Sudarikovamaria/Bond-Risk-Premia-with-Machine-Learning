@@ -96,6 +96,6 @@ This group includes feed-forward neural networks with different numbers of layer
 
 1. Bianchi, D., Büchner, M., & Tamoni, A. (2021). *Bond Risk Premia with Machine Learning*. Author’s Accepted Manuscript, University of Warwick Research Archive. [WRAP version](https://wrap.warwick.ac.uk/151797/1/WRAP-bond-risk-premiums-machine-learning-B%C3%BCchner-2021.pdf).
 
-2. Liu, Y., & Wu, J. C. (2020). *Reconstructing the Yield Curve*. NBER Working Paper No. 27266. [NBER version](https://www.nber.org/papers/w27266).
+2. Liu, Y., & Wu, J. C. (2021). *Liu–Wu Yield Data* [Data set]. Monthly and daily yield curve data. [Official data page](https://sites.google.com/view/jingcynthiawu/yield-data).
 
-3. McCracken, M. W., & Ng, S. (2016). FRED-MD: A Monthly Database for Macroeconomic Research. *Journal of Business & Economic Statistics*, 34(4), 574–589. [DOI](https://doi.org/10.1080/07350015.2015.1086655).
+3. Federal Reserve Bank of St. Louis. (2018). *FRED-MD: December 2018 Vintage* [Data set]. [Official FRED-MD data page](https://www.stlouisfed.org/research/economists/mccracken/fred-databases).
